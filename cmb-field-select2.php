@@ -26,6 +26,7 @@ function pw_select2( $field, $meta ) {
 	echo ( isset( $field['desc'] ) && ! empty( $meta ) ? '<p class="cmb_metabox_description">' . $field['desc'] . '</p>' : '' );
 }
 add_filter( 'cmb_render_pw_select', 'pw_select2', 10, 2 );
+add_filter( 'cmb_render_pw_select_post', 'pw_select2', 10, 2 );
 add_filter( 'cmb_render_pw_multiselect', 'pw_select2', 10, 2 );
 
 /**
@@ -38,6 +39,37 @@ function pw_select( $field, $meta ) {
 		foreach ( $field['options'] as $option_key => $option ) {
 			$label = isset( $option['name'] ) ? $option['name'] : $option;
 			$value = isset( $option['value'] ) ? $option['value'] : $option_key;
+
+			echo '<option value="', $value, '" ', selected( $meta == $value ) ,'>', $label, '</option>';
+		}
+	}
+	echo '</select>';
+}
+
+/**
+ * Render select post field
+ */
+function pw_select_post( $field, $meta ) {
+	// Grab our attached posts meta
+	$attached = get_post_meta( get_the_ID(), '_attached_posts', true );
+
+	// Setup our args
+	$args = array(
+		'post_type'			=> $field['postType'],
+		'posts_per_page'	=> -1,
+		'orderby'			=> 'name',
+		'order'				=> 'ASC',
+	);
+
+	// Get all posts from selected type as arguments
+	$postToConnect = get_posts( $args );
+
+	echo '<select name="', $field['id'], '" id="', $field['id'], '" data-placeholder="' . $field['desc'] . '" class="select2">';
+	echo '<option></option>';
+	if ( isset( $postToConnect ) && ! empty( $postToConnect ) ) {
+		foreach ( $postToConnect as $myOption ) {
+			$label = isset( $myOption->post_title ) ? $myOption->post_title : $myOption->post_title;
+			$value = isset( $myOption->ID ) ? $myOption->ID : $myOption->ID;
 
 			echo '<option value="', $value, '" ', selected( $meta == $value ) ,'>', $label, '</option>';
 		}
